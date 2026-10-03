@@ -179,8 +179,8 @@ enum emc2101_auto_channels_temp {
 };
 
 enum emc2101_mode {
-	EMC2101_MODE_PWM = 0,
-	EMC2101_MODE_DAC = 1
+	EMC2101_MODE_DAC = 0,
+	EMC2101_MODE_PWM = 1
 };
 
 enum ecm2101_product_id {
@@ -1343,7 +1343,8 @@ static int emc2101_pwm_mode_write(struct device *dev, long val)
 	switch (val) {
 	case EMC2101_MODE_DAC:
 	case EMC2101_MODE_PWM:
-		ret = regmap_field_write(data->fields[F_FAN_MODE_DAC], val);
+		ret = regmap_field_write(data->fields[F_FAN_MODE_DAC],
+					 val == EMC2101_MODE_DAC);
 		break;
 	default:
 		ret = -EOPNOTSUPP;
