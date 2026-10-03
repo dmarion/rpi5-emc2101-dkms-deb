@@ -1,0 +1,24 @@
+/dts-v1/;
+/plugin/;
+
+/*
+ * EMC2101 fan controller at 0x4C on the 40-pin header I2C1 (GPIO2/3)
+ * of a Raspberry Pi 5 / CM5. The driver does not parse "pwms"; PWM
+ * frequency is set at runtime via pwm1_freq (see emc2101-setup).
+ */
+/ {
+	compatible = "brcm,bcm2712";
+
+	fragment@0 {
+		target = <&i2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			emc2101: fan-controller@4c {
+				compatible = "microchip,emc2101";
+				reg = <0x4c>;
+			};
+		};
+	};
+};

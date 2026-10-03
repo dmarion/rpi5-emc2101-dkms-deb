@@ -1,0 +1,65 @@
+#!/bin/sh
+set -e
+
+NAME=emc2101
+VERSION=@VERSION@
+OVERLAYS="i2c1-sda-hold emc2101-i2c1"
+CONFIG=/boot/firmware/config.txt
+BEGIN="# BEGIN emc2101-dkms"
+END="# END emc2101-dkms"
+
+# The firmware reads overlays from the active boot directory; on Ubuntu,
+# flash-kernel also re-copies /etc/flash-kernel/dtbs/overlays into it on
+# every kernel update.
+overlay_dirs() {
+	[ -d /etc/flash-kernel ] && echo /etc/flash-kernel/dtbs/overlays
+	for d in /boot/firmware/current/overlays /boot/firmware/overlays; do
+		[ -d "$d" ] && echo "$d"
+	done
+	return 0
+}
+
+case "$1" in
+configure)
+	if [ -z "$(dkms status -m "$NAME" -v "$VERSION")" ]; then
+		dkms add -m "$NAME" -v "$VERSION"
+	fi
+	# Build for the running kernel; later kernels are handled by DKMS
+	# autoinstall. Missing headers must not break package installation.
+	if ! dkms install -m "$NAME" -v "$VERSION" -k "$(uname -r)"; then
+		echo "emc2101-dkms: build for $(uname -r) failed;" \
+		     "install linux-headers-$(uname -r) and run:" \
+		     "dkms install -m $NAME -v $VERSION" >&2
+	fi
+
+	for d in $(overlay_dirs); do
+		mkdir -p "$d"
+		for o in $OVERLAYS; do
+			cp "/usr/lib/emc2101/overlays/$o.dtbo" "$d/"
+		done
+	done
+
+	if [ -f "$CONFIG" ] && ! grep -qxF "$BEGIN" "$CONFIG"; then
+		cp -p "$CONFIG" "$CONFIG.emc2101-dkms.bak"
+		cat >> "$CONFIG" <<-EOF
+		$BEGIN
+		[all]
+		dtoverlay=i2c1-sda-hold
+		dtoverlay=emc2101-i2c1
+		$END
+		EOF
+		echo "emc2101-dkms: added overlays to $CONFIG" \
+		     "(backup: $CONFIG.emc2101-dkms.bak); reboot to apply" >&2
+	fi
+	if [ -f "$CONFIG" ] && ! grep -qE '^dtparam=i2c_arm=on' "$CONFIG"; then
+		echo "emc2101-dkms: warning: dtparam=i2c_arm=on is not set in" \
+		     "$CONFIG; I2C1 on GPIO2/3 stays disabled without it" >&2
+	fi
+
+	# Re-apply settings to an already bound device (e.g. on upgrade).
+	udevadm control --reload 2>/dev/null || true
+	udevadm trigger -c add -s hwmon -a name=emc2101 2>/dev/null || true
+	;;
+esac
+
+exit 0

@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+OVERLAYS="i2c1-sda-hold emc2101-i2c1"
+CONFIG=/boot/firmware/config.txt
+BEGIN="# BEGIN emc2101-dkms"
+END="# END emc2101-dkms"
+
+case "$1" in
+remove|purge)
+	for d in /etc/flash-kernel/dtbs/overlays /boot/firmware/current/overlays \
+		 /boot/firmware/overlays; do
+		for o in $OVERLAYS; do
+			rm -f "$d/$o.dtbo"
+		done
+	done
+
+	if [ -f "$CONFIG" ] && grep -qxF "$BEGIN" "$CONFIG"; then
+		sed -i "/^$BEGIN\$/,/^$END\$/d" "$CONFIG"
+	fi
+	;;
+esac
+
+exit 0

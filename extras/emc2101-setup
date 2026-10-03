@@ -1,0 +1,24 @@
+#!/bin/sh
+# Configure an EMC2101 hwmon device from /etc/default/emc2101.
+# Run by udev with the hwmon sysfs directory as $1.
+set -e
+
+H=${1:?usage: $0 /sys/class/hwmon/hwmonN}
+
+PWM_FREQ=25000
+CURVE="0:3 40:4 45:6 50:8 55:10 60:12 65:14 70:14"
+TEMP_TYPE=2
+[ -r /etc/default/emc2101 ] && . /etc/default/emc2101
+
+echo "$TEMP_TYPE" > "$H/temp2_type"
+# Frequency first: it sets the duty scale the curve settings refer to.
+echo "$PWM_FREQ" > "$H/pwm1_freq"
+
+n=1
+for p in $CURVE; do
+	echo "$(( ${p%%:*} * 1000 ))" > "$H/pwm1_auto_point${n}_temp"
+	echo "${p##*:}" > "$H/pwm1_auto_point${n}_pwm"
+	n=$((n + 1))
+done
+
+echo 2 > "$H/pwm1_enable"	# lookup table (automatic) control

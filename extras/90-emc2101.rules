@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="hwmon", ATTR{name}=="emc2101", RUN+="/usr/sbin/emc2101-setup /sys%p"

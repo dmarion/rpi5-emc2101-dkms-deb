@@ -1,0 +1,16 @@
+# Settings applied by /usr/sbin/emc2101-setup whenever the EMC2101 hwmon
+# device appears. Apply edits with
+#   udevadm trigger -c add -s hwmon -a name=emc2101
+# or a reboot.
+
+# PWM frequency in Hz. 4-pin PC fans expect 21-28 kHz. The duty scale
+# for CURVE is 0..2*PWM_F with PWM_F = 360000 / (2 * PWM_FREQ); at
+# 25000 Hz PWM_F is 7, so 100% duty is a setting of 14.
+PWM_FREQ=25000
+
+# Lookup table: eight "temperature_C:setting" points, rising. A non-zero
+# first point keeps fans that stall at 0% duty spinning.
+CURVE="0:3 40:4 45:6 50:8 55:10 60:12 65:14 70:14"
+
+# External diode: 1 = CPU/GPU thermal diode, 2 = 2N3904 transistor.
+TEMP_TYPE=2

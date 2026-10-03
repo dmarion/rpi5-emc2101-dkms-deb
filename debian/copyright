@@ -1,0 +1,15 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: emc2101
+Source: https://lore.kernel.org/all/20250709164829.3072944-1-noltari@gmail.com/
+
+Files: emc2101.c emc2101.rst
+Copyright: Álvaro Fernández Rojas <noltari@gmail.com>
+License: GPL-2.0-or-later
+
+Files: microchip,emc2101.yaml
+Copyright: Álvaro Fernández Rojas <noltari@gmail.com>
+License: GPL-2.0-only or BSD-2-Clause
+
+License: GPL-2.0-or-later
+ On Debian systems, the full text of the GNU General Public License
+ version 2 can be found in /usr/share/common-licenses/GPL-2.

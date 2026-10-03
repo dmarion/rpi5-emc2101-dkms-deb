@@ -1,0 +1,23 @@
+Package: emc2101-dkms
+Version: @DEBVERSION@
+Architecture: all
+Section: kernel
+Priority: optional
+Maintainer: Damjan Marion <damjan.marion@gmail.com>
+Depends: dkms, udev
+Recommends: linux-headers
+Description: Microchip EMC2101 fan controller hwmon driver (DKMS)
+ Out-of-tree build of the Linux hwmon driver for the Microchip EMC2101
+ SMBus PWM fan controller with internal and external temperature sensors.
+ .
+ For a Raspberry Pi 5 / CM5 with the EMC2101 at 0x4C on the 40-pin header
+ I2C1 (GPIO2/3), this package also installs and enables two device tree
+ overlays in /boot/firmware/config.txt: one lengthening the RP1 I2C1 SDA
+ hold time to the 300 ns SMBus minimum, and one declaring the EMC2101.
+ A udev rule applies the PWM frequency, fan curve and diode type from
+ /etc/default/emc2101 whenever the device appears.
+ .
+ Source is taken unmodified from the upstream patch series
+ "[PATCH v3 3/3] drivers: hwmon: add EMC2101 driver" by
+ Álvaro Fernández Rojas (2025-07-09), which is not yet merged into
+ mainline Linux.
