@@ -2140,6 +2140,7 @@ static int emc2101_probe(struct i2c_client *client)
 	struct emc2101_data *data;
 	struct device *hwmon_dev;
 	unsigned int i;
+	int ret;
 
 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
 		return -EIO;
@@ -2164,6 +2165,10 @@ static int emc2101_probe(struct i2c_client *client)
 	data->dev = dev;
 	mutex_init(&data->mutex);
 
+	ret = emc2101_init(data);
+	if (ret)
+		return ret;
+
 	hwmon_dev = devm_hwmon_device_register_with_info(dev, client->name, data,
 							 &emc2101_chip_info,
 							 emc2101_hwmon_groups);
@@ -2172,7 +2177,7 @@ static int emc2101_probe(struct i2c_client *client)
 
 	dev_dbg(dev, "%s: sensor '%s'\n", dev_name(hwmon_dev), client->name);
 
-	return emc2101_init(data);
+	return 0;
 }
 
 static int emc2101_detect(struct i2c_client *client, struct i2c_board_info *info)
