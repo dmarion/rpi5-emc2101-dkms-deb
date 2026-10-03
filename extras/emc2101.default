@@ -3,14 +3,14 @@
 #   udevadm trigger -c add -s hwmon -a name=emc2101
 # or a reboot.
 
-# PWM frequency in Hz. 4-pin PC fans expect 21-28 kHz. The duty scale
-# for CURVE is 0..2*PWM_F with PWM_F = 360000 / (2 * PWM_FREQ); at
-# 25000 Hz PWM_F is 7, so 100% duty is a setting of 14.
+# PWM frequency in Hz. 4-pin PC fans expect 21-28 kHz. Duty resolution
+# is 1 / (2 * PWM_F) with PWM_F = 360000 / (2 * PWM_FREQ): at 25000 Hz
+# that is 14 steps of about 7%, and CURVE values round to the nearest.
 PWM_FREQ=25000
 
-# Lookup table: eight "temperature_C:setting" points, rising. A non-zero
-# first point keeps fans that stall at 0% duty spinning.
-CURVE="0:3 40:4 45:6 50:8 55:10 60:12 65:14 70:14"
+# Lookup table: eight "temperature_C:duty_percent" points, rising. A
+# non-zero first point keeps fans that stall at 0% duty spinning.
+CURVE="0:21 40:29 45:43 50:57 55:71 60:86 65:100 70:100"
 
 # External diode: 1 = CPU/GPU thermal diode, 2 = 2N3904 transistor.
 TEMP_TYPE=2

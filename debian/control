@@ -17,7 +17,7 @@ Description: Microchip EMC2101 fan controller hwmon driver (DKMS)
  A udev rule applies the PWM frequency, fan curve and diode type from
  /etc/default/emc2101 whenever the device appears.
  .
- Source is taken unmodified from the upstream patch series
- "[PATCH v3 3/3] drivers: hwmon: add EMC2101 driver" by
- Álvaro Fernández Rojas (2025-07-09), which is not yet merged into
- mainline Linux.
+ Source is the upstream patch series "[PATCH v3 3/3] drivers: hwmon:
+ add EMC2101 driver" by Álvaro Fernández Rojas (2025-07-09), not yet
+ merged into mainline Linux, plus fixes for temp2_type readback,
+ pwm1_mode and 0..255 pwm scaling per the hwmon ABI.

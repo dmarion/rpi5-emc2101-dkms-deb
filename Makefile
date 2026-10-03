@@ -6,7 +6,7 @@
 
 PACKAGE    := emc2101
 VERSION    := 0.3
-DEBREV     := 2
+DEBREV     := 3
 DEBVERSION := $(VERSION)-$(DEBREV)
 DEB        := $(PACKAGE)-dkms_$(DEBVERSION)_all.deb
 
