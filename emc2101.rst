@@ -33,9 +33,9 @@ fan1_spin_up_abort        RW file for fan spin up abort on low RPM
 fan1_spin_up_power        RW file for fan spin up power (in percentage)
 fan1_spin_up_time         RW file for fan spin up time (in ms)
 fan1_standby              RW file for fan standby mode
-pwm1                      RW file for fan target duty cycle (0..63)
+pwm1                      RW file for fan target duty cycle (0..255)
 pwm1_auto_channels_temp   RW file for fan temperature sensor (external, force)
-pwm1_auto_point[1-8]_pwm  RW files for look up table fan speed
+pwm1_auto_point[1-8]_pwm  RW files for look up table fan speed (0..255)
 pwm1_auto_point[1-8]_temp RW files for look up table temperature
 pwm1_auto_point_temp_hyst RW file for look up table temperature hysteresis
 pwm1_enable               RW file for fan config (manual, look up table)

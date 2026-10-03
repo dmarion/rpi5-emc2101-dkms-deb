@@ -581,6 +581,56 @@ static int emc2101_pwm_write(struct regmap_field *field, long pwm)
 	return regmap_field_write(field, val);
 }
 
+/*
+ * Fan setting giving 100% duty: 2 * PWM_F in PWM mode (PWM_F = 0 acts
+ * like 1), the full 6-bit range in DAC mode.
+ */
+static int emc2101_pwm_full(struct emc2101_data *data, unsigned int *full)
+{
+	unsigned int dac, pwm_freq;
+	int ret;
+
+	ret = regmap_field_read(data->fields[F_FAN_MODE_DAC], &dac);
+	if (ret)
+		return ret;
+
+	if (dac) {
+		*full = PWM_MASK;
+		return 0;
+	}
+
+	ret = regmap_field_read(data->fields[F_PWM_FREQ], &pwm_freq);
+	if (!ret)
+		*full = min_t(unsigned int, 2 * max(pwm_freq, 1U), PWM_MASK);
+
+	return ret;
+}
+
+/* Convert between a fan setting register value and hwmon's 0..255 */
+static int emc2101_pwm_from_reg(struct emc2101_data *data, unsigned int reg, long *pwm)
+{
+	unsigned int full;
+	int ret;
+
+	ret = emc2101_pwm_full(data, &full);
+	if (!ret)
+		*pwm = min_t(unsigned int, DIV_ROUND_CLOSEST(reg * 255, full), 255);
+
+	return ret;
+}
+
+static int emc2101_pwm_to_reg(struct emc2101_data *data, long pwm, unsigned int *reg)
+{
+	unsigned int full;
+	int ret;
+
+	ret = emc2101_pwm_full(data, &full);
+	if (!ret)
+		*reg = DIV_ROUND_CLOSEST((unsigned int)clamp_val(pwm, 0, 255) * full, 255);
+
+	return ret;
+}
+
 static ssize_t fan_spin_up_abort_show(struct device *dev, struct device_attribute *devattr,
 				      char *buf)
 {
@@ -729,13 +779,18 @@ static ssize_t pwm_auto_point_pwm_show(struct device *dev, struct device_attribu
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	struct emc2101_data *data = dev_get_drvdata(dev);
 	unsigned int lut_pwm;
+	long pwm;
 	int ret;
 
 	ret = regmap_field_read(data->fields[F_FAN_LUT_SPEED(attr->index)], &lut_pwm);
 	if (ret)
 		return ret;
 
-	return sprintf(buf, "%u\n", lut_pwm);
+	ret = emc2101_pwm_from_reg(data, lut_pwm, &pwm);
+	if (ret)
+		return ret;
+
+	return sprintf(buf, "%ld\n", pwm);
 }
 
 static ssize_t __pwm_auto_point_pwm_store(struct emc2101_data *data,
@@ -744,6 +799,10 @@ static ssize_t __pwm_auto_point_pwm_store(struct emc2101_data *data,
 	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
 	bool lut_disable;
 	int ret;
+
+	ret = emc2101_pwm_to_reg(data, lut_pwm, &lut_pwm);
+	if (ret)
+		return ret;
 
 	ret = emc2101_lut_edit(data, &lut_disable);
 	if (ret)
@@ -1307,17 +1366,23 @@ static int emc2101_pwm_input_read(struct device *dev, long *val)
 	int ret;
 
 	ret = regmap_field_read(data->fields[F_FAN_SET], &fan_set);
-	if (!ret)
-		*val = fan_set;
+	if (ret)
+		return ret;
 
-	return ret;
+	return emc2101_pwm_from_reg(data, fan_set, val);
 }
 
 static int emc2101_pwm_input_write(struct device *dev, long val)
 {
 	struct emc2101_data *data = dev_get_drvdata(dev);
+	unsigned int fan_set;
+	int ret;
 
-	return emc2101_pwm_write(data->fields[F_FAN_SET], val);
+	ret = emc2101_pwm_to_reg(data, val, &fan_set);
+	if (ret)
+		return ret;
+
+	return emc2101_pwm_write(data->fields[F_FAN_SET], fan_set);
 }
 
 static int emc2101_pwm_mode_read(struct device *dev, long *val)
