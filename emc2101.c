@@ -1505,7 +1505,7 @@ static int emc2101_temp_ext_type_read(struct device *dev, long *val)
 	if (ret)
 		return ret;
 
-	ret = regmap_field_read(data->fields[F_BETA_COMP], &beta_comp_auto);
+	ret = regmap_field_read(data->fields[F_BETA_COMP_AUTO], &beta_comp_auto);
 	if (ret)
 		return ret;
 
